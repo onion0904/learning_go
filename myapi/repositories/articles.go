@@ -44,10 +44,11 @@ func SelectArticleList(db *sql.DB, page int) ([]models.Article, error) {
 	}
 	defer rows.Close()
 	articleArray := make([]models.Article,0)
-
-
-// (問 2) 指定された記事データをデータベースから取得して、
-// それを models.Article 構造体のスライス []models.Article に詰めて返す処理
+	for rows.Next(){
+		var aricle models.Article
+		rows.Scan(&aricle.ID, &aricle.Title, &aricle.Contents,&article.UserName, & article.NiceNum)
+		articleArray = append(articleArray, aricle)
+	}
 	return articleArray, nil
 }
 // 投稿 ID を指定して、記事データを取得する関数
@@ -57,19 +58,59 @@ func SelectArticleDetail(db *sql.DB, articleID int) (models.Article, error) {
 		select *
 		from articles
 		where article_id = ?;
-		`
-// (問 3) 指定 ID の記事データをデータベースから取得して、それを models.Article 構造体の形で返す処理
+	`
+	rows, err := db.Query(sqlStr, articleID)
+	if err!= nil {
+        return models.Article{}, err
+    }
+	defer rows.Close()
+	var article models.Article
+	var createdTime sql.NullTime
+	err := row.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	if createdTime.Valid {
+		article.CreatedAt = createdTime.Time
+	}
 	return article, nil
 }
 // いいねの数を update する関数
 // -> 発生したエラーを返り値にする
 func UpdateNiceNum(db *sql.DB, articleID int) error {
+	tx, err := db.Begin()
+	if err!= nil {
+        return err
+    }
+	
 	const sqlGetNice = `
 		select nice
 		from articles
 		where article_id = ?;
-	`
+	`	
+	row, err := tx.QueryRow(sqlGetNice, articleID)
+	if err := row.Err(); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	var niceNum int
+	err = row.Scan(&niceNum)
+	if err!= nil {
+        tx.Rollback()
+        return err
+    }
 	const sqlUpdateNice = `update articles set nice = ? where article_id = ?`
-// (問 4) 指定された ID の記事のいいね数を+1 するようにデータベースの中身を更新する処理
+
+	_, err = tx.Exec(sqlUpdateNice, niceNum + 1, articleID)
+	if err!= nil {
+        tx.Rollback()
+        return err
+    }
+	if err := tx.Commit(); err!= nil {
+		return err
+    }
+
 	return nil
 }
