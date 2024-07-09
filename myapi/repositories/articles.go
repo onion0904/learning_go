@@ -40,7 +40,8 @@ func SelectArticleList(db *sql.DB, page int) ([]models.Article, error) {
 		limit ? offset ?;
 	`
 
-	rows, err := db.Query(sqlStr, articleNumPerPage, ((page - 1) * articleNumPerPage))
+	offset := (page - 1) * articleNumPerPage
+	rows, err := db.Query(sqlStr, articleNumPerPage,offset)
 	if err != nil {
 		return nil, err
 	}
