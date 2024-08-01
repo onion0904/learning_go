@@ -9,22 +9,17 @@ import (
 
 // ArticleDetailHandler で使うことを想定したサービス
 // 指定 ID の記事情報を返却
-func GetArticleService(articleID int) (models.Article, error) {
-	db, err := connectDB()
-	if err!= nil {
-        return models.Article{}, err
-    }
-	defer db.Close()
+func (s *MyAppService) GetArticleService(articleID int) (models.Article, error) {
 
 	// 1. repositories 層の関数 SelectArticleDetail で記事の詳細を取得
-	article, err2 := repositories.SelectArticleDetail(db, articleID)
-	if err2 != nil {
-		return models.Article{}, err2
+	article, err1 := repositories.SelectArticleDetail(s.db, articleID)
+	if err1 != nil {
+		return models.Article{}, err1
 	}
 	// 2. repositories 層の関数 SelectCommentList でコメント一覧を取得
-	commentList, err3 := repositories.SelectCommentList(db, articleID)
-	if err3 != nil {
-		return models.Article{}, err3
+	commentList, err2 := repositories.SelectCommentList(s.db, articleID)
+	if err2 != nil {
+		return models.Article{}, err2
 	}
 
 	// 3. 2 で得たコメント一覧を、1 で得た Article 構造体に紐付ける
@@ -33,31 +28,21 @@ func GetArticleService(articleID int) (models.Article, error) {
 	return article, nil
 }
 
-func PostArticleService (article models.Article) (models.Article, error) {
-	db, err := connectDB()
-	if err!= nil {
-        return models.Article{}, err
-    }
-	defer db.Close()
+func (s *MyAppService) PostArticleService(article models.Article) (models.Article,error){
 
-	article , err2 := repositories.InsertArticle(db, article)
-	if err2 != nil {
-		return models.Article{}, err2
+	article , err := repositories.InsertArticle(s.db, article)
+	if err != nil {
+		return models.Article{}, err
 	}
-
 	return article, nil
 }
 
 // ArticleListHandler で使うことを想定したサービス
 // 指定 page の記事一覧を返却
-func GetArticleListService(page int) ([]models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error) {
 
-	ArticleList , err := repositories.SelectArticleList(db, page)
+
+	ArticleList , err := repositories.SelectArticleList(s.db, page)
 	if err!= nil {
         return nil, err
     }
@@ -68,14 +53,9 @@ func GetArticleListService(page int) ([]models.Article, error) {
 
 // PostNiceHandler で使うことを想定したサービス
 // 指定 ID の記事のいいね数を+1 して、結果を返却
-func PostNiceService(article models.Article) (models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		return models.Article{}, err
-	}
-	defer db.Close()
+func (s *MyAppService) PostNiceService(article models.Article) (models.Article, error) {
 
-	err = repositories.UpdateNiceNum(db, article.ID)
+	err := repositories.UpdateNiceNum(s.db, article.ID)
 	if err!= nil {
         return models.Article{}, err
     }
