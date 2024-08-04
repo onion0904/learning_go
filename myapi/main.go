@@ -2,9 +2,9 @@ package main
 import (
     "log"
     "net/http"
-    "github.com/yourname/reponame/controllers"
-    "github.com/gorilla/mux"
-    "github.com/yourname/reponame/services"
+    _"github.com/yourname/reponame/controllers"
+    _"github.com/gorilla/mux"
+    _"github.com/yourname/reponame/services"
     "github.com/yourname/reponame/api"
     _"github.com/go-sql-driver/mysql"
     "database/sql"
